@@ -302,6 +302,8 @@ struct usdt_sema { volatile unsigned short active; };
 #define USDT_ARG_CONSTRAINT		nZr
 #elif defined __arm__
 #define USDT_ARG_CONSTRAINT		g
+#elif defined __loongarch__
+#define USDT_ARG_CONSTRAINT		nmr
 #else
 #define USDT_ARG_CONSTRAINT		nor
 #endif
