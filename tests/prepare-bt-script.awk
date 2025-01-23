@@ -46,6 +46,8 @@
 }
 
 END {
-	if (has_contents)
+	if (has_contents) {
+		printf("uretprobe:%s:main { exit(); }\n", OUTPUT "/" TEST);
 		printf("END { printf(\"DONE!\\n\"); }\n");
+	}
 }

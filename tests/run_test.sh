@@ -69,36 +69,44 @@ if [ -s "$TEST_BTSCRIPT" ]; then
 	bt_pid=$!
 	bt_pgid="$(ps -opgid= "$bt_pid" | tr -d ' ')"
 
+	dump_bt_output() {
+		echo "BPFTRACE SCRIPT:"
+		cat "$TEST_BTSCRIPT"
+		echo "BPFTRACE OUTPUT:"
+		cat "$TEST_BTOUT_RAW"
+	}
+
+	wait_for_bpftrace() {
+		local bt_start=$(date +%s)
+		local stop_word="$1"
+		local msg="$2"
+		while true; do
+			local bt_elapsed=$(( $(date +%s) - bt_start ))
+			if grep -q "$stop_word" "$TEST_BTOUT_RAW"; then
+				break
+			elif [ "$bt_elapsed" -ge "$TIMEOUT" ]; then
+				sudo kill -KILL -$bt_pgid 2>/dev/null
+				echo "BPFTRACE ${msg} TIMEOUT!"
+				dump_bt_output
+				exit 1
+			elif ! kill -s 0 "$bt_pid"; then
+				echo "BPFTRACE ${msg} FAILURE!"
+				dump_bt_output
+				exit 1
+			else
+				sleep 0.2
+			fi
+		done
+	}
+
 	# wait for bpftrace to finish attachment
-	bt_start=$(date +%s)
-	while true; do
-		bt_elapsed=$(( $(date +%s) - bt_start ))
-		if grep -q "STARTED!" "$TEST_BTOUT_RAW"; then
-			break
-		elif [ "$bt_elapsed" -ge "$TIMEOUT" ]; then
-			sudo kill -KILL -$bt_pgid 2>/dev/null
-			echo "BPFTRACE STARTUP TIMEOUT!"
-			echo "BPFTRACE SCRIPT:"
-			cat "$TEST_BTSCRIPT"
-			echo "BPFTRACE OUTPUT:"
-			cat "$TEST_BTOUT_RAW"
-			exit 1
-		elif ! kill -s 0 "$bt_pid"; then
-			echo "BPFTRACE STARTUP FAILURE!"
-			echo "BPFTRACE SCRIPT:"
-			cat "$TEST_BTSCRIPT"
-			echo "BPFTRACE OUTPUT:"
-			cat "$TEST_BTOUT_RAW"
-			exit 1
-		else
-			sleep 0.2
-		fi
-	done
+	wait_for_bpftrace "STARTED!" "STARTUP"
 
 	# get test output while bpftrace is attached
 	$TEST_BIN &>"$TEST_OUT"
 
-	sudo kill -INT -$bt_pgid 2>/dev/null
+	# wait for bpftrace to terminate
+	wait_for_bpftrace "DONE!" "RUNNING"
 
 	$awk '/STARTED!/ {flag=1; next} /DONE!/ {flag=0} flag' $TEST_BTOUT_RAW > $TEST_BTOUT
 	if ! $awk -f check-match.awk $TEST_BTOUT_SPEC $TEST_BTOUT; then
