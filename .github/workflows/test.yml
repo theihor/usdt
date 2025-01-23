@@ -1,0 +1,31 @@
+name: USDT CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install prerequisites
+      run: sudo .github/scripts/setup.sh
+
+    - name: Build (static)
+      run: make SHARED=0 -C tests -j$(nproc) build
+
+    - name: Build (shared)
+      run: make SHARED=1 -C tests -j$(nproc) build
+
+    - name: Test (static)
+      run: make SHARED=0 -C tests test
+
+    - name: Test (shared)
+      run: make SHARED=1 -C tests test
+
