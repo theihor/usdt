@@ -2,12 +2,17 @@
 
 set -euo pipefail
 
-BPFTRACE_VERSION=${BPFTRACE_VERSION:-0.22.1}
-
 # Assume sudo in this script
+BPFTRACE_VERSION=${BPFTRACE_VERSION:-0.22.1}
+GCC_VERSION=${GCC_VERSION:-13}
 
-# Install dependencies
-apt update && apt install -y make file gawk libfuse2t64
+# Install pre-requisites
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y curl file gawk libfuse2t64 make sudo
+
+# Install CC
+apt-get install -y gcc-${GCC_VERSION} g++-${GCC_VERSION}
 
 # Download bpftrace release
 BIN_DIR=/usr/local/bin
