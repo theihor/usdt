@@ -7,25 +7,29 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-test:
 
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        gcc-version: [ 10, 11, 12, 13, 14 ]
+        shared: [ 0, 1 ]
+
+    name: gcc-${{ matrix.gcc-version }} SHARED=${{ matrix.shared }}
+
+    env:
+      GCC_VERSION: ${{ matrix.gcc-version }}
+      SHARED: ${{ matrix.shared }}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Install prerequisites
-      run: sudo .github/scripts/setup.sh
+      run: sudo -E .github/scripts/setup.sh
 
-    - name: Build (static)
-      run: make SHARED=0 -C tests -j$(nproc) build
+    - name: Build SHARED=${{ matrix.shared }}
+      run: .github/scripts/build.sh
 
-    - name: Build (shared)
-      run: make SHARED=1 -C tests -j$(nproc) build
-
-    - name: Test (static)
-      run: make SHARED=0 -C tests test
-
-    - name: Test (shared)
-      run: make SHARED=1 -C tests test
-
+    - name: Test SHARED=${{ matrix.shared }}
+      run: make -C tests test
