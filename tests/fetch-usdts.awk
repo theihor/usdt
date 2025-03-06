@@ -13,20 +13,30 @@ function reset_entry()
 
 function print_entry()
 {
-	if (base != 0 && !(base in basemap)) {
-		basemap[base] = ++base_cnt;
+	if (base != 0) {
+		base_key = filename ":" base;
+		if (!(base_key in basemap)) {
+			basemap[base_key] = ++base_cnt;
+		}
 	}
-	if (sema != 0 && !(sema in semamap)) {
-		semamap[sema] = ++sema_cnt;
+
+	if (sema != 0) {
+		sema_key = filename ":" sema;
+		if (!(sema_key in semamap)) {
+			semamap[sema_key] = ++sema_cnt;
+		}
 	}
-	base_stub = (base == 0) ? "0" : sprintf("BASE%d", basemap[base]);
-	sema_stub = (sema == 0) ? "0" : sprintf("SEMA%d", semamap[sema]);
+
+	base_stub = (base == 0) ? "0" : sprintf("BASE%d", basemap[base_key]);
+	sema_stub = (sema == 0) ? "0" : sprintf("SEMA%d", semamap[sema_key]);
+
 	printf "%s:%s base=%s sema=%s argn=%d args=%s.\n",
 	       grp, name, base_stub, sema_stub, argn, args;
 }
 
 BEGIN {
 	reset_entry();
+	filename = "";
 }
 
 #  stapsdt              0x0000003b       NT_STAPSDT (SystemTap probe descriptors)
@@ -34,6 +44,14 @@ BEGIN {
 #    Name: name4
 #    Location: 0x0000000000401198, Base: 0x0000000000402043, Semaphore: 0x0000000000000000
 #    Arguments: -4@$1 -4@$2 -4@$3 -4@$4
+
+/File:/ {
+	if (entry != "") {
+		print_entry();
+		reset_entry();
+	}
+	filename = $2;
+}
 
 /\sstapsdt\s/ {
 	if (entry != "") {
