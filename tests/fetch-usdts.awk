@@ -47,7 +47,12 @@ BEGIN {
 /Provider:/ { grp = $2; }
 /Name:/ { name = $2; }
 /Location:/ { base = strtonum($4); sema = strtonum($6); }
-/Arguments:/ { argn = NF - 1; args = (argn > 0) ? substr($0, index($0,$2)) : ""; }
+/Arguments:/ {
+	arg_str = substr($0, index($0, "Arguments: ") + 11);
+	# Count arguments by looking for patterns like "-4@" that start each argument
+	argn = gsub(/-?[0-9]+@/, "&", arg_str);
+	args = (argn > 0) ? arg_str : "";
+}
 
 END {
 	if (entry != "")
