@@ -16,8 +16,11 @@ function print_entry()
 	if (base != 0 && !(base in basemap)) {
 		basemap[base] = ++base_cnt;
 	}
-	if (sema != 0 && !(sema in semamap)) {
-		semamap[sema] = ++sema_cnt;
+	if (sema != 0) {
+		sema = base "+" sema;
+		if (!(sema in semamap)) {
+			semamap[sema] = ++sema_cnt;
+		}
 	}
 	base_stub = (base == 0) ? "0" : sprintf("BASE%d", basemap[base]);
 	sema_stub = (sema == 0) ? "0" : sprintf("SEMA%d", semamap[sema]);
