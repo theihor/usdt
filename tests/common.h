@@ -8,6 +8,15 @@
 #define __always_inline inline __attribute__((always_inline))
 #endif
 
+/* Struct-by-value USDT argument currently only works on x86_64 with gcc
+ * See: https://github.com/bpftrace/bpftrace/issues/3798
+ */
+#if defined(__clang__) || defined(__aarch64__)
+  #define ALLOW_STRUCT_BY_VALUE_TEST 0
+#else
+  #define ALLOW_STRUCT_BY_VALUE_TEST 1
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
