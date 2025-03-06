@@ -21,6 +21,17 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+#ifdef __aarch64__
+const char *USDT_SPECS =
+"test:chars base=BASE1 sema=0 argn=2 args=1@1 -1@-1.\n"
+"test:shorts base=BASE1 sema=0 argn=2 args=2@2 -2@-2.\n"
+"test:ints base=BASE1 sema=0 argn=2 args=4@3 -4@-3.\n"
+"test:longs base=BASE1 sema=0 argn=2 args=*@4 -*@-4.\n"
+"test:longlongs base=BASE1 sema=0 argn=2 args=8@5 -8@-5.\n"
+"test:size_ts base=BASE1 sema=0 argn=2 args=*@6 -*@-6.\n"
+"test:ptrs base=BASE1 sema=0 argn=2 args=*@0 *@7.\n"
+;
+#else
 const char *USDT_SPECS =
 "test:chars base=BASE1 sema=0 argn=2 args=1@$1 -1@$-1.\n"
 "test:shorts base=BASE1 sema=0 argn=2 args=2@$2 -2@$-2.\n"
@@ -30,7 +41,7 @@ const char *USDT_SPECS =
 "test:size_ts base=BASE1 sema=0 argn=2 args=*@$6 -*@$-6.\n"
 "test:ptrs base=BASE1 sema=0 argn=2 args=*@$0 *@$7.\n"
 ;
-
+#endif
 const char *BPFTRACE_SCRIPT =
 "test:chars { arg0=%hhu arg1=%hhd -> arg0, arg1 }\n"
 "test:shorts { arg0=%hu arg1=%hd -> arg0, arg1 }\n"
