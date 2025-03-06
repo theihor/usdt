@@ -25,10 +25,9 @@ jobs:
 
     runs-on: ${{ matrix.runs-on }}
 
-    name: ${{ endsWith(matrix.runs-on, '-arm') && 'arm64' || 'x86_64' }} SHARED=${{ matrix.shared }} ${{ matrix.compiler.name }}-${{ matrix.compiler.version }}
+    name: ${{ endsWith(matrix.runs-on, '-arm') && 'arm64' || 'x86_64' }} ${{ matrix.shared == 1 && 'shared' || 'static' }} ${{ matrix.compiler.name }}-${{ matrix.compiler.version }}
 
     env:
-      ARCH: ${{ endsWith(matrix.runs-on, '-arm') && 'arm64' || 'x86_64' }}
       COMPILER: ${{ matrix.compiler.name }}
       COMPILER_VERSION: ${{ matrix.compiler.version }}
       SHARED: ${{ matrix.shared }}
@@ -44,3 +43,11 @@ jobs:
 
     - name: Test SHARED=${{ matrix.shared }}
       run: make -C tests test
+
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: tests-output-${{ endsWith(matrix.runs-on, '-arm') && 'arm64' || 'x86_64' }}-${{ matrix.shared == 1 && 'shared' || 'static' }}-${{ matrix.compiler.name }}-${{ matrix.compiler.version }}
+        if-no-files-found: warn
+        path: tests/.output
+        include-hidden-files: true
